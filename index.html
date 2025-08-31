@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Start Your Interview</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; display: flex; align-items: center; justify-content: center; min-height: 100vh; background-color: #f8fafc; margin: 0; }
+        .container { text-align: center; background: white; padding: 40px; border-radius: 12px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); }
+        h1 { color: #1a202c; }
+        p { color: #4a5568; margin-top: 0; }
+        button { padding: 12px 24px; font-size: 16px; color: white; background-color: #4339CC; border: none; border-radius: 8px; cursor: pointer; transition: opacity 0.2s; }
+        button:disabled { opacity: 0.5; cursor: not-allowed; }
+        #message { margin-top: 20px; font-weight: bold; word-break: break-all; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Work In Haus Interview</h1>
+        <p>You are ready to begin your automated interview.</p>
+        <p>Please click the button below to start the call.</p>
+        <br>
+        <button id="startButton">Start Interview Call</button>
+        <p id="message"></p>
+    </div>
+
+    <script>
+        console.log('Checkpoint 1: Script started.');
+        const supabaseUrl = 'https://ixnixbwhhnnbxuwllaqc.supabase.co';
+        const supabaseAnonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Iml4bml4YndoaG5uYnh1d2xsYXFjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTYxNjkxNzUsImV4cCI6MjA3MTc0NTE3NX0.JWsrTY3-ZkmekqZeUPWjQrq_G800q-KFIV57mrpllMY';
+        
+        try {
+            const supabaseClient = supabase.createClient(supabaseUrl, supabaseAnonKey);
+            const startButton = document.getElementById('startButton');
+            const messageDiv = document.getElementById('message');
+            const params = new URLSearchParams(window.location.search);
+            const interviewId = params.get('interviewId');
+
+            if (!interviewId) {
+                startButton.disabled = true;
+                messageDiv.textContent = 'Error: Interview ID not found in URL.';
+            } else {
+                startButton.addEventListener('click', async () => {
+                    startButton.disabled = true;
+                    messageDiv.textContent = 'Initiating call, please wait...';
+                    
+                    const { data, error } = await supabaseClient.functions.invoke('start-interview', {
+                        body: { interviewId: interviewId }
+                    });
+
+                    if (error) {
+                        messageDiv.textContent = `Error: ${error.message}. Please try again.`;
+                        startButton.disabled = false;
+                    } else {
+                        // Display the URL that was generated for debugging
+                        messageDiv.textContent = `Call initiated! The URL sent to Twilio was: ${data.generatedUrl}`;
+                        messageDiv.style.color = 'green';
+                    }
+                });
+            }
+        } catch (e) {
+            console.error('CRITICAL ERROR:', e);
+            document.getElementById('message').textContent = 'A critical error occurred.';
+        }
+    </script>
+</body>
+</html>
