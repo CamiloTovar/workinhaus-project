@@ -26,43 +26,49 @@
     </div>
 
     <script>
-        console.log('Checkpoint 1: Script started.');
-        const supabaseUrl = 'https://ixnixbwhhnnbxuwllaqc.supabase.co';
-        const supabaseAnonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Iml4bml4YndoaG5uYnh1d2xsYXFjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTYxNjkxNzUsImV4cCI6MjA3MTc0NTE3NX0.JWsrTY3-ZkmekqZeUPWjQrq_G800q-KFIV57mrpllMY';
-        
-        try {
-            const supabaseClient = supabase.createClient(supabaseUrl, supabaseAnonKey);
-            const startButton = document.getElementById('startButton');
-            const messageDiv = document.getElementById('message');
-            const params = new URLSearchParams(window.location.search);
-            const interviewId = params.get('interviewId');
+    const supabaseUrl = 'https://ixnixbwhhnnbxuwllaqc.supabase.co';
+    const supabaseAnonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Iml4bml4YndoaG5uYnh1d2xsYXFjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTYxNjkxNzUsImV4cCI6MjA3MTc0NTE3NX0.JWsrTY3-ZkmekqZeUPWjQrq_G800q-KFIV57mrpllMY';
+    
+    try {
+        const supabaseClient = supabase.createClient(supabaseUrl, supabaseAnonKey);
+        const startButton = document.getElementById('startButton');
+        const messageDiv = document.getElementById('message');
+        const params = new URLSearchParams(window.location.search);
+        const interviewId = params.get('interviewId');
 
-            if (!interviewId) {
+        if (!interviewId) {
+            startButton.disabled = true;
+            messageDiv.textContent = 'Error: Interview ID not found in URL.';
+        } else {
+            startButton.addEventListener('click', async () => {
                 startButton.disabled = true;
-                messageDiv.textContent = 'Error: Interview ID not found in URL.';
-            } else {
-                startButton.addEventListener('click', async () => {
-                    startButton.disabled = true;
-                    messageDiv.textContent = 'Initiating call, please wait...';
-                    
-                    const { data, error } = await supabaseClient.functions.invoke('start-interview', {
-                        body: { interviewId: interviewId }
-                    });
-
-                    if (error) {
-                        messageDiv.textContent = `Error: ${error.message}. Please try again.`;
-                        startButton.disabled = false;
-                    } else {
-                        // Display the URL that was generated for debugging
-                        messageDiv.textContent = `Call initiated! The URL sent to Twilio was: ${data.generatedUrl}`;
-                        messageDiv.style.color = 'green';
-                    }
+                messageDiv.textContent = 'Initiating call, please wait...';
+                
+                const { data, error } = await supabaseClient.functions.invoke('start-interview', {
+                    body: { interviewId: interviewId }
                 });
-            }
-        } catch (e) {
-            console.error('CRITICAL ERROR:', e);
-            document.getElementById('message').textContent = 'A critical error occurred.';
+
+                if (error) {
+                    // --- IMPROVED ERROR DISPLAY ---
+                    messageDiv.style.color = 'red';
+                    startButton.disabled = false;
+                    try {
+                        const errorDetails = await error.context.json();
+                        console.error('Full error from function:', errorDetails);
+                        messageDiv.textContent = `Error: ${errorDetails.details || error.message}`;
+                    } catch (e) {
+                        messageDiv.textContent = `Error: ${error.message}. Please try again.`;
+                    }
+                } else {
+                    messageDiv.textContent = 'Call initiated! Your phone should ring shortly.';
+                    messageDiv.style.color = 'green';
+                }
+            });
         }
+    } catch (e) {
+        console.error('CRITICAL ERROR:', e);
+        document.getElementById('message').textContent = 'A critical error occurred.';
+    }
     </script>
 </body>
 </html>
