@@ -49,14 +49,17 @@
                 });
 
                 if (error) {
-                    // --- IMPROVED ERROR DISPLAY ---
+                    // --- MEJORA EN LA VISUALIZACIÓN DEL ERROR ---
                     messageDiv.style.color = 'red';
                     startButton.disabled = false;
                     try {
+                        // Supabase envuelve el error de la función en 'context'
                         const errorDetails = await error.context.json();
                         console.error('Full error from function:', errorDetails);
+                        // Muestra el mensaje específico del campo 'details' de nuestra función
                         messageDiv.textContent = `Error: ${errorDetails.details || error.message}`;
                     } catch (e) {
+                        // Fallback para otros errores de red
                         messageDiv.textContent = `Error: ${error.message}. Please try again.`;
                     }
                 } else {
