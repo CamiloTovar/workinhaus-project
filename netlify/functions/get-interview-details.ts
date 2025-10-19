@@ -6,9 +6,7 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
-// This is the standard Netlify Function handler
 const handler: Handler = async (event) => {
-  // Handle CORS preflight requests
   if (event.httpMethod === 'OPTIONS') {
     return {
       statusCode: 200,
@@ -18,7 +16,6 @@ const handler: Handler = async (event) => {
   }
 
   try {
-    // Access environment variables using process.env in Node.js
     const SUPABASE_URL = process.env.SUPABASE_URL;
     const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
@@ -31,9 +28,7 @@ const handler: Handler = async (event) => {
     }
     const { interviewId } = JSON.parse(event.body);
 
-    // --- DEBUGGING STEP: Log the received interviewId ---
     console.log("Received request for interviewId:", interviewId);
-    // --- END DEBUGGING STEP ---
 
     if (!interviewId) {
        return {
@@ -49,8 +44,8 @@ const handler: Handler = async (event) => {
       .from('interviews')
       .select(`
         candidates ( full_name ),
-        vacancies ( recruiter_questions, job_title )
-      `)
+        vacancies ( recruiter_questions, job_title, job_description ) 
+      `) // <-- MODIFIED LINE: Added job_description
       .eq('id', interviewId)
       .single();
 
@@ -66,6 +61,7 @@ const handler: Handler = async (event) => {
     const responsePayload = {
       candidateName: interviewData.candidates?.full_name || "Candidate",
       jobTitle: interviewData.vacancies?.job_title || "the position",
+      jobDescription: interviewData.vacancies?.job_description || "no specific job description provided.", // <-- NEW: Added jobDescription
       questions: interviewData.vacancies?.recruiter_questions?.map((q) => q.question) || []
     };
 
