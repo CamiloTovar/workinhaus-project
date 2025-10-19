@@ -26,11 +26,14 @@ const handler: Handler = async (event) => {
       throw new Error("Supabase credentials are not set in environment variables.");
     }
     
-    // The request body is in event.body, and needs to be parsed
     if (!event.body) {
         throw new Error("Request body is missing.");
     }
     const { interviewId } = JSON.parse(event.body);
+
+    // --- DEBUGGING STEP: Log the received interviewId ---
+    console.log("Received request for interviewId:", interviewId);
+    // --- END DEBUGGING STEP ---
 
     if (!interviewId) {
        return {
@@ -66,7 +69,6 @@ const handler: Handler = async (event) => {
       questions: interviewData.vacancies?.recruiter_questions?.map((q) => q.question) || []
     };
 
-    // Return a response object in the format Netlify expects
     return {
       statusCode: 200,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
