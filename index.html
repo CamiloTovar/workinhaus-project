@@ -1,29 +1,91 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="es">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Start Your Interview</title>
+    <title>Iniciar Entrevista - Work In Haus</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
-        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; display: flex; align-items: center; justify-content: center; min-height: 100vh; background-color: #f8fafc; margin: 0; }
-        .container { text-align: center; background: white; padding: 40px; border-radius: 12px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); }
-        h1 { color: #1a202c; }
-        p { color: #4a5568; margin-top: 0; }
-        button { padding: 12px 24px; font-size: 16px; color: white; background-color: #4339CC; border: none; border-radius: 8px; cursor: pointer; transition: opacity 0.2s; }
-        button:disabled { opacity: 0.5; cursor: not-allowed; }
-        #message { margin-top: 20px; font-weight: bold; word-break: break-all; }
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            background-color: #f8f9fa; /* Light grey background */
+            margin: 0;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+        .container {
+            text-align: center;
+            background: white;
+            padding: 40px 50px; /* More padding */
+            border-radius: 16px; /* More rounded corners */
+            box-shadow: 0 8px 30px rgba(0,0,0,0.08); /* Softer shadow */
+            max-width: 450px;
+            width: 100%;
+        }
+        .logo {
+            max-width: 180px; /* Adjust as needed */
+            margin-bottom: 30px;
+        }
+        h1 {
+            color: #343a40; /* Darker grey */
+            font-size: 1.6em;
+            margin-bottom: 10px;
+        }
+        p {
+            color: #6c757d; /* Medium grey */
+            margin-top: 0;
+            margin-bottom: 25px;
+            font-size: 1em;
+            line-height: 1.6;
+        }
+        button {
+            padding: 14px 30px; /* Slightly larger button */
+            font-size: 16px;
+            font-weight: 600;
+            color: white;
+            background-color: #4339CC; /* Your brand color */
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background-color 0.2s ease, box-shadow 0.2s ease;
+            box-shadow: 0 4px 15px rgba(67, 57, 204, 0.2); /* Subtle shadow for button */
+        }
+        button:hover:not(:disabled) {
+            background-color: #3a30b8; /* Darker shade on hover */
+            box-shadow: 0 6px 20px rgba(67, 57, 204, 0.3);
+        }
+        button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            box-shadow: none;
+        }
+        #message {
+            margin-top: 25px;
+            font-weight: 600;
+            min-height: 20px; /* Prevent layout shift */
+            word-break: break-all;
+            font-size: 0.95em;
+        }
+        .message-success { color: #155724; } /* Green for success */
+        .message-error { color: #721c24; } /* Red for error */
+        .message-info { color: #0c5460; } /* Blue for info/loading */
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>Work In Haus Interview</h1>
-        <p>You are ready to begin your automated interview.</p>
-        <p>Please click the button below to start the call.</p>
-        <br>
-        <button id="startButton">Start Interview Call</button>
-        <p id="message"></p>
-    </div>
+        <img src="https://ixnixbwhhnnbxuwllaqc.supabase.co/storage/v1/object/public/assets/Imagotipo%20blanco%20sobre%20azul%20(1).jpg" alt="Work In Haus Logo" class="logo">
+
+        <h1>Entrevista Automatizada Work In Haus</h1>
+        <p>Estás a punto de comenzar tu entrevista de preselección automatizada. Haz clic en el botón de abajo cuando estés listo para iniciar la llamada.</p>
+
+        <button id="startButton">Iniciar Llamada de Entrevista</button>
+        <p id="message" class="message-info"></p> </div>
 
     <script>
     const supabaseUrl = 'https://ixnixbwhhnnbxuwllaqc.supabase.co';
@@ -38,40 +100,43 @@
 
         if (!interviewId) {
             startButton.disabled = true;
-            messageDiv.textContent = 'Error: Interview ID not found in URL.';
+            messageDiv.textContent = 'Error: No se encontró el ID de la entrevista en la URL.';
+            messageDiv.className = 'message-error'; // Set error class
         } else {
             startButton.addEventListener('click', async () => {
                 startButton.disabled = true;
-                messageDiv.textContent = 'Initiating call, please wait...';
+                messageDiv.textContent = 'Iniciando llamada, por favor espera...';
+                messageDiv.className = 'message-info'; // Set info class
                 
                 const { data, error } = await supabaseClient.functions.invoke('start-interview', {
                     body: { interviewId: interviewId }
                 });
 
                 if (error) {
-                    // --- MEJORA EN LA VISUALIZACIÓN DEL ERROR ---
-                    messageDiv.style.color = 'red';
+                    messageDiv.className = 'message-error'; // Set error class
                     startButton.disabled = false;
                     try {
-                        // Supabase envuelve el error de la función en 'context'
                         const errorDetails = await error.context.json();
                         console.error('Full error from function:', errorDetails);
-                        // Muestra el mensaje específico del campo 'details' de nuestra función
+                        // Show detailed error if available, otherwise generic message
                         messageDiv.textContent = `Error: ${errorDetails.details || error.message}`;
                     } catch (e) {
-                        // Fallback para otros errores de red
-                        messageDiv.textContent = `Error: ${error.message}. Please try again.`;
+                        messageDiv.textContent = `Error: ${error.message}. Por favor, intenta de nuevo.`;
                     }
                 } else {
-                    messageDiv.textContent = 'Call initiated! Your phone should ring shortly.';
-                    messageDiv.style.color = 'green';
+                    messageDiv.textContent = '¡Llamada iniciada! Tu teléfono debería sonar en breve.';
+                    messageDiv.className = 'message-success'; // Set success class
+                    // Optionally hide button after success? Or leave it disabled.
                 }
             });
         }
     } catch (e) {
         console.error('CRITICAL ERROR:', e);
-        document.getElementById('message').textContent = 'A critical error occurred.';
+        document.getElementById('message').textContent = 'Ocurrió un error crítico.';
+        document.getElementById('message').className = 'message-error';
     }
     </script>
+</body>
+</html>
 </body>
 </html>
